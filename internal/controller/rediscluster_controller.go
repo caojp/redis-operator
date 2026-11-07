@@ -253,6 +253,12 @@ func (r *RedisClusterReconciler) mutateStatefulSet(rc *cachev1.RedisCluster, sts
 	// 逐个启动：pod-0 起好之后才拉 pod-1，从节点才不会空转重连。
 	sts.Spec.PodManagementPolicy = appsv1.OrderedReadyPodManagement
 	sts.Spec.MinReadySeconds = 3
+	// 显式声明 PVC 的去留。默认值就是 Retain，写出来是为了让删除 CR 的人
+	// 知道数据盘不会跟着消失——这一点和 Deployment 的行为不一样。
+	sts.Spec.PersistentVolumeClaimRetentionPolicy = &appsv1.StatefulSetPersistentVolumeClaimRetentionPolicy{
+		WhenDeleted: appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
+		WhenScaled:  appsv1.RetainPersistentVolumeClaimRetentionPolicyType,
+	}
 
 	sts.Spec.Template.ObjectMeta.Labels = objectLabels(rc)
 	sts.Spec.Template.Spec.TerminationGracePeriodSeconds = &gracePeriod

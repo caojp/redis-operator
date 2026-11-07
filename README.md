@@ -115,7 +115,13 @@ make test
 
 1. **没有自动故障切换**。主节点固定为 `pod-0`；`pod-0` 挂掉时 StatefulSet 会把它重建回来，重建期间写入不可用。真正的故障切换要处理主从选举、脑裂和数据丢失窗口，这件事 Redis 生态里已有 Sentinel 和 Cluster 两种成熟方案，自己写一套轮子风险大于收益。
 2. **`VolumeClaimTemplates` 创建后不可变**。给已有集群加 `spec.storage` 或改 `size` 不会生效，需要重建 StatefulSet 或手动扩 PVC。
-3. **单命名空间内 CR 名称唯一**，子资源名由 CR 名派生（`<name>`、`<name>-headless`），不支持同一命名空间跑两个同名集群。
+3. **删 CR 不会删数据盘**。StatefulSet 的 `persistentVolumeClaimRetentionPolicy` 默认就是 `Retain`，控制器也显式写成了 `Retain`。重建同名集群会复用这些 PVC，确认不要数据了得自己删：
+
+   ```bash
+   kubectl delete pvc -l app.kubernetes.io/instance=redis-prod
+   ```
+
+4. **单命名空间内 CR 名称唯一**，子资源名由 CR 名派生（`<name>`、`<name>-headless`），不支持同一命名空间跑两个同名集群。
 
 ## 目录
 
