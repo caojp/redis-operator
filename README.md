@@ -4,26 +4,19 @@
 
 用 Kubebuilder 从零写的一个 Redis Operator：声明一个 `RedisCluster` 对象，控制器负责拉起一主多从的 Redis、给客户端一个稳定的主节点入口、把运行状态写回 `.status`。
 
-配套文章：<https://www.workbuddy.cn/space/d/DbNyjyHNlhWJR7gHIWBena>（姊妹篇，讲 Operator 原理）与本仓库 README 的完整实现说明。
+配套文章：https://blog.51cto.com/bronte/15067373（姊妹篇，讲 Operator 原理）与本仓库 README 的完整实现说明。
 
 ## 它做什么
 
-```
-                 ┌──────────────────────────────┐
-  kubectl apply  │  RedisCluster (CR)           │
-  ─────────────► │  spec.replicas: 3            │
-                 └──────────────┬───────────────┘
-                                │ watch
-                 ┌──────────────▼───────────────┐
-                 │  RedisClusterReconciler      │
-                 │  CreateOrUpdate → 幂等       │
-                 └───┬──────────┬───────────┬───┘
-                     │          │           │
-        ┌────────────▼──┐  ┌────▼────────┐  ┌▼──────────────┐
-        │ Headless Svc  │  │ StatefulSet │  │ 读写 Service  │
-        │ redis-headless│  │ redis-0..N  │  │ selector=     │
-        │ DNS: pod-0... │  │ 1 主 N-1 从 │  │ pod-name: -0  │
-        └───────────────┘  └─────────────┘  └───────────────┘
+
+
+```mermaid
+flowchart TD
+    A["kubectl apply<br/>RedisCluster (CR)<br/>spec.replicas: 3"] -->|watch| B["RedisClusterReconciler<br/>CreateOrUpdate → 幂等"]
+
+    B --> C["Headless Svc<br/>redis-headless<br/>DNS: pod-0..."]
+    B --> D["StatefulSet<br/>redis-0..N<br/>1 主 N-1 从"]
+    B --> E["读写 Service<br/>selector=<br/>pod-name: -0"]
 ```
 
 - **一主多从**：`pod-0` 是主节点，其余从节点通过 `--replicaof redis-0.redis-headless.<ns>.svc.cluster.local 6379` 跟随。
