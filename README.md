@@ -1,5 +1,7 @@
 # redis-operator
 
+![redis-operator](docs/img/cover.png)
+
 用 Kubebuilder 从零写的一个 Redis Operator：声明一个 `RedisCluster` 对象，控制器负责拉起一主多从的 Redis、给客户端一个稳定的主节点入口、把运行状态写回 `.status`。
 
 配套文章：<https://www.workbuddy.cn/space/d/DbNyjyHNlhWJR7gHIWBena>（姊妹篇，讲 Operator 原理）与本仓库 README 的完整实现说明。
