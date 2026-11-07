@@ -1,0 +1,23 @@
+# 生产向的示例：带持久化卷和密码认证。
+# 应用前先建好 Secret：
+#   kubectl create secret generic redis-auth --from-literal=password='S3cret-ChangeMe'
+apiVersion: cache.example.com/v1
+kind: RedisCluster
+metadata:
+  name: redis-prod
+  namespace: default
+spec:
+  replicas: 3
+  image: redis:7.4.12
+  storage:
+    size: 1Gi
+    className: standard
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      memory: 512Mi
+  auth:
+    secretName: redis-auth
+    secretKey: password

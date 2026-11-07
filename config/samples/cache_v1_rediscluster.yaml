@@ -1,0 +1,15 @@
+apiVersion: cache.example.com/v1
+kind: RedisCluster
+metadata:
+  name: redis
+  namespace: default
+spec:
+  # 1 主 + 2 从
+  replicas: 3
+  image: redis:7.4.12
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      memory: 256Mi
